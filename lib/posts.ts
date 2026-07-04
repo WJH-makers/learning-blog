@@ -179,5 +179,5 @@ export function markdownToHtml(markdown: string): string {
 }
 
 export function siteUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL ?? "https://learning-blog.vercel.app").replace(/\/$/, "");
+  return (process.env.NEXT_PUBLIC_SITE_URL ?? "https://wjh-makers-learning-blog.vercel.app").replace(/\/$/, "");
 }

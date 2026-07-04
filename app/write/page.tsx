@@ -1,13 +1,13 @@
 import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { createDatabasePost, hasDatabaseConfig } from "@/lib/db";
+import { createDatabasePost, databaseProviderLabel, hasDatabaseConfig } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "写今日心得",
-  description: "从网页直接写入每日学习心得到 MySQL 数据库。",
+  description: "从网页直接写入每日学习心得到 MongoDB Atlas 云数据库。",
 };
 
 type Props = {
@@ -77,16 +77,16 @@ export default async function WritePage({ searchParams }: Props) {
         <p className="eyebrow">:write</p>
         <h1>写今日心得</h1>
         <p>
-          这里是数据库写入入口。提交后文章会进入 MySQL 的 <code>learning_posts</code> 表，并立即出现在首页、文章列表、标签页和 RSS 中。
+          这里是 MongoDB Atlas 云数据库写入入口。提交后文章会进入 <code>learning_posts</code> collection，并立即出现在首页、文章列表、标签页和 RSS 中。
         </p>
       </div>
 
       <section className={dbReady ? "db-status ok" : "db-status warn"}>
-        <strong>{dbReady ? "数据库配置已发现" : "数据库尚未配置"}</strong>
+        <strong>{dbReady ? `数据库配置已发现：${databaseProviderLabel()}` : "MongoDB Atlas 尚未配置"}</strong>
         <span>
           {dbReady
-            ? "可以提交。若连接失败，请检查账号、密码、库名、网络白名单和 Vercel 环境变量。"
-            : "当前只能显示静态 Markdown。请配置 DATABASE_URL 或 MYSQL_HOST/MYSQL_DATABASE/MYSQL_USER/MYSQL_PASSWORD。"}
+            ? "可以提交。若连接失败，请检查 Atlas 用户名/密码、Network Access 白名单、数据库名和 Vercel 环境变量。"
+            : "当前只能显示静态 Markdown。请配置 MONGODB_URI；线上推荐使用 MongoDB Atlas M0 免费集群。"}
         </span>
       </section>
 

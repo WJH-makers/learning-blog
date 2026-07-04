@@ -1,13 +1,14 @@
 import type { MetadataRoute } from "next";
-import { getAllPosts, siteUrl } from "@/lib/posts";
+import { getAllPublishedPosts, siteUrl } from "@/lib/posts";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
+  const posts = await getAllPublishedPosts();
   return [
     { url: base, lastModified: new Date() },
     { url: `${base}/posts`, lastModified: new Date() },
     { url: `${base}/tags`, lastModified: new Date() },
-    ...getAllPosts().map((post) => ({
+    ...posts.map((post) => ({
       url: `${base}/posts/${post.slug}`,
       lastModified: new Date(post.date),
     })),

@@ -1,18 +1,20 @@
 import Link from "next/link";
-import { getAllTags } from "@/lib/posts";
+import { getAllPublishedTags } from "@/lib/posts";
 
 export const metadata = {
   title: "标签",
   description: "按主题浏览学习记录。",
 };
 
-export default function TagsPage() {
-  const tags = getAllTags();
+export const dynamic = "force-dynamic";
+
+export default async function TagsPage() {
+  const tags = await getAllPublishedTags();
 
   return (
     <div className="page-shell narrow">
       <div className="page-title">
-        <p className="eyebrow">Topics</p>
+        <p className="eyebrow">:helptags</p>
         <h1>标签</h1>
         <p>用主题把每天的学习记录串起来。</p>
       </div>

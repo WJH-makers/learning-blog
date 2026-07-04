@@ -9,7 +9,8 @@
 - Next.js App Router
 - TypeScript
 - 本地 Markdown 内容：`content/posts/*.md`
-- 无数据库、无 CMS、无额外 Markdown 依赖
+- 可选 MySQL 直连写入：`/write`
+- 无 ORM / 无 CMS：只使用 `mysql2` 驱动直连
 
 ## 常用命令
 
@@ -20,6 +21,57 @@ npm run typecheck
 npm run build
 npm run post:new -- "今天学到的主题" --tags="Java, MySQL, 复盘"
 ```
+
+## 为什么之前不能在网页里直接写心得？
+
+之前这个博客是纯静态 Markdown 架构：
+
+- 文章只从 `content/posts/*.md` 读取。
+- 没有数据库驱动。
+- 没有 API / Server Action 写入入口。
+- Vercel 的文件系统不能当作持久写入空间，网页表单不能直接把 Markdown 永久写回仓库。
+
+现在新增了可选 MySQL 写入链路：如果配置了数据库环境变量，就可以打开 `/write`，把每天心得直接写入 `learning_posts` 表。
+
+## MySQL 配置
+
+复制环境变量模板：
+
+```bash
+copy .env.example .env.local
+```
+
+创建本地数据库和账号（先把 `change_me` 改成你自己的强密码）：
+
+```bash
+mysql -u root -p < scripts/schema.sql
+```
+
+`.env.local` 至少需要：
+
+```text
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3306
+MYSQL_DATABASE=learning_blog
+MYSQL_USER=learning_blog_user
+MYSQL_PASSWORD=你的密码
+BLOG_ADMIN_TOKEN=一个很长的写入密钥
+```
+
+也可以只用一条：
+
+```text
+DATABASE_URL=mysql://learning_blog_user:你的密码@127.0.0.1:3306/learning_blog
+BLOG_ADMIN_TOKEN=一个很长的写入密钥
+```
+
+启动后访问：
+
+```text
+http://localhost:3000/write
+```
+
+线上 Vercel 也要在 Project Settings → Environment Variables 中设置同样的变量；不要把真实 `.env.local` 提交到 Git。
 
 ## 新增文章
 
@@ -81,5 +133,6 @@ NEXT_PUBLIC_SITE_URL=https://wjh-makers-learning-blog.vercel.app
 - `/posts` 全部文章
 - `/posts/[slug]` 文章详情
 - `/tags` 标签
+- `/write` 网页写入心得（需要 MySQL + BLOG_ADMIN_TOKEN）
 - `/rss.xml` RSS
 - `/sitemap.xml` Sitemap

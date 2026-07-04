@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getAllTags, getPostsByTag } from "@/lib/posts";
+import { getAllTags, getPublishedPostsByTag } from "@/lib/posts";
 
 type Props = {
   params: Promise<{ tag: string }>;
@@ -9,6 +9,8 @@ type Props = {
 export function generateStaticParams() {
   return getAllTags().map(({ tag }) => ({ tag: encodeURIComponent(tag) }));
 }
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { tag } = await params;
@@ -22,13 +24,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function TagPage({ params }: Props) {
   const { tag } = await params;
   const decoded = decodeURIComponent(tag);
-  const posts = getPostsByTag(decoded);
+  const posts = await getPublishedPostsByTag(decoded);
 
   return (
     <div className="page-shell narrow">
       <Link className="back-link" href="/tags">← 返回标签</Link>
       <div className="page-title">
-        <p className="eyebrow">Tag</p>
+        <p className="eyebrow">:tag {decoded}</p>
         <h1>{decoded}</h1>
         <p>{posts.length} 篇相关学习记录。</p>
       </div>

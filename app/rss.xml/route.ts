@@ -1,10 +1,10 @@
-import { getAllPosts, markdownToHtml, siteUrl } from "@/lib/posts";
+import { getAllPublishedPosts, markdownToHtml, siteUrl } from "@/lib/posts";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
-export function GET() {
+export async function GET() {
   const base = siteUrl();
-  const items = getAllPosts()
+  const items = (await getAllPublishedPosts())
     .map((post) => `
       <item>
         <title><![CDATA[${post.title}]]></title>

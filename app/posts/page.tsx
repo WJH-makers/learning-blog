@@ -1,18 +1,20 @@
 import Link from "next/link";
-import { getAllPosts } from "@/lib/posts";
+import { getAllPublishedPosts } from "@/lib/posts";
 
 export const metadata = {
   title: "全部文章",
   description: "万佳泓的每日学习记录文章列表。",
 };
 
-export default function PostsPage() {
-  const posts = getAllPosts();
+export const dynamic = "force-dynamic";
+
+export default async function PostsPage() {
+  const posts = await getAllPublishedPosts();
 
   return (
     <div className="page-shell narrow">
       <div className="page-title">
-        <p className="eyebrow">Archive</p>
+        <p className="eyebrow">:oldfiles</p>
         <h1>全部文章</h1>
         <p>按时间倒序记录每天的学习成果。</p>
       </div>

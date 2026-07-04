@@ -1,9 +1,14 @@
+import type { Route } from "next";
 import Link from "next/link";
-import { getAllPosts, getAllTags } from "@/lib/posts";
+import { getAllPublishedPosts, getAllPublishedTags } from "@/lib/posts";
 
-export default function HomePage() {
-  const posts = getAllPosts();
-  const tags = getAllTags();
+const writeRoute = "/write" as Route;
+
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const posts = await getAllPublishedPosts();
+  const tags = await getAllPublishedTags();
   const latest = posts.slice(0, 4);
   const tracks = [
     { name: "Java 全栈", desc: "Java · Maven · Gradle · Spring · MySQL", count: posts.filter((post) => post.tags.some((tag) => ["Java", "MySQL"].includes(tag))).length },
@@ -15,19 +20,20 @@ export default function HomePage() {
     <div className="page-shell">
       <section className="hero">
         <div>
-          <p className="eyebrow">Daily Learning Journal</p>
-          <h1>把每天学到的东西沉淀成可复用的工程资产。</h1>
+          <p className="eyebrow">*daily-learning-journal*</p>
+          <h1>像读 Vim Tutor 一样复盘每天的学习</h1>
           <p className="hero-text">
-            这里记录 Java 全栈、Git、数据库、AI、系统与工程化配置。每篇文章都尽量包含目标、过程、命令、坑点和复盘。
+            这里记录 Java 全栈、Git、数据库、AI、系统与工程化配置。每篇文章都尽量包含目标、命令、验证证据和复盘，像 Neovim help buffer 一样可检索、可跳转、可长期维护。
           </p>
           <div className="hero-actions">
             <Link className="button primary" href="/posts">开始阅读</Link>
             <Link className="button" href="/tags">按标签查找</Link>
+            <Link className="button ghost" href={writeRoute}>写今日心得</Link>
           </div>
         </div>
         <div className="hero-panel" aria-label="今日学习记录模板">
-          <span>Today</span>
-          <strong>学习记录模板</strong>
+          <span>:Tutor</span>
+          <strong>*daily-note-template*</strong>
           <ol>
             <li>目标：今天要解决什么？</li>
             <li>过程：用了哪些命令/资料？</li>
@@ -45,7 +51,7 @@ export default function HomePage() {
 
       <section className="section-head">
         <div>
-          <p className="eyebrow">Tracks</p>
+          <p className="eyebrow">|quickfix-list|</p>
           <h2>学习轨道</h2>
         </div>
         <span className="muted">把零散学习变成长期路线图</span>
@@ -63,7 +69,7 @@ export default function HomePage() {
 
       <section className="section-head">
         <div>
-          <p className="eyebrow">Latest</p>
+          <p className="eyebrow">:newest</p>
           <h2>最新学习成果</h2>
         </div>
         <Link href="/posts">查看全部 →</Link>
@@ -83,7 +89,7 @@ export default function HomePage() {
       </div>
 
       <section className="review-panel">
-        <p className="eyebrow">Review Loop</p>
+        <p className="eyebrow">:make review</p>
         <h2>我的每日复盘闭环</h2>
         <div className="review-steps">
           <div><strong>01</strong><span>写下问题</span></div>

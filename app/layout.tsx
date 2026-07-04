@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import type { Route } from "next";
 import Link from "next/link";
 import "./globals.css";
+
+const writeRoute = "/write" as Route;
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://wjh-makers-learning-blog.vercel.app"),
@@ -21,6 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <div className="nav-links">
               <Link href="/posts">文章</Link>
               <Link href="/tags">标签</Link>
+              <Link href={writeRoute}>写心得</Link>
               <a href="https://github.com/WJH-makers" target="_blank" rel="noreferrer">GitHub</a>
             </div>
           </nav>

@@ -11,6 +11,7 @@
     "post:new": "node scripts/new-post.mjs"
   },
   "dependencies": {
+    "mysql2": "3.22.5",
     "next": "16.2.10",
     "react": "19.2.7",
     "react-dom": "19.2.7"

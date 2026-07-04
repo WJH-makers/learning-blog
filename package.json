@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "deploy:doctor": "node scripts/doctor-deploy.mjs",
     "post:new": "node scripts/new-post.mjs"
   },
   "dependencies": {

@@ -20,6 +20,7 @@ npm install
 npm run dev
 npm run typecheck
 npm run build
+npm run deploy:doctor
 npm run post:new -- "今天学到的主题" --tags="Java, MySQL, 复盘"
 ```
 
@@ -131,8 +132,17 @@ tags: Java, Git, MySQL
 
 ```bash
 npx vercel@latest login
+npx vercel@latest link --yes --project wjh-makers-learning-blog
 npx vercel@latest --prod
 ```
+
+本机配置完成后可运行：
+
+```bash
+npm run deploy:doctor
+```
+
+它会检查 `.env.local`、Vercel 项目绑定、必需环境变量和 MongoDB Atlas ping，不会打印真实密钥。
 
 ## 目录
 

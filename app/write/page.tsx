@@ -2,6 +2,7 @@ import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { checkDatabaseConnection, createDatabasePost, databaseProviderLabel, hasDatabaseConfig } from "@/lib/db";
+import WriteEditorClient from "./WriteEditorClient";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -103,64 +104,7 @@ export default async function WritePage({ searchParams }: Props) {
 
       {message ? <p className="form-error">E42: {message}</p> : null}
 
-      <div className="editor-layout">
-        <form className="editor-form" action={publishPost}>
-          <label>
-            <span>写入密钥 BLOG_ADMIN_TOKEN</span>
-            <input name="token" type="password" autoComplete="off" required />
-          </label>
-
-          <div className="form-grid">
-            <label>
-              <span>日期</span>
-              <input name="date" type="date" defaultValue={today} required />
-            </label>
-            <label>
-              <span>标签（英文逗号分隔）</span>
-              <input name="tags" defaultValue="Java, Git, MySQL, 复盘" />
-            </label>
-          </div>
-
-          <label>
-            <span>标题</span>
-            <input name="title" placeholder="例如：今天把 Vercel 博客写作入口打通了" required />
-          </label>
-
-          <label>
-            <span>摘要</span>
-            <input name="summary" placeholder="一句话说明今天沉淀了什么" />
-          </label>
-
-          <label>
-            <span>正文 Markdown</span>
-            <textarea
-              name="content"
-              rows={18}
-              required
-              defaultValue={`## 今天学了什么\n\n- \n\n## 关键命令\n\n\`\`\`bash\n\n\`\`\`\n\n## 遇到的问题\n\n> \n\n## 验证证据\n\n- \n\n## 明天继续\n\n- `}
-            />
-          </label>
-
-          <div className="hero-actions">
-            <button className="button primary" type="submit">发布今日心得</button>
-            <a className="button" href="/posts">查看归档</a>
-          </div>
-        </form>
-
-        <aside className="editor-note" aria-label="写作发布清单">
-          <p className="eyebrow">Publishing Checklist</p>
-          <h2>写博客时只抓四件事</h2>
-          <ul>
-            <li><strong>目标</strong><span>今天要解决的真实问题是什么？</span></li>
-            <li><strong>过程</strong><span>记录关键命令、链接、报错和取舍。</span></li>
-            <li><strong>证据</strong><span>写清楚如何验证：构建、截图、日志或结论。</span></li>
-            <li><strong>复盘</strong><span>留下下次可复用的模板或避坑规则。</span></li>
-          </ul>
-          <p>
-            这个入口没有 CMS、ORM 或额外后台，只用 Next.js Server Action + MongoDB 官方 Driver。按钮保持 44px 以上触控尺寸、清晰主次和强焦点态，方便以后每天快速打开、写完、发布。
-          </p>
-        </aside>
-      </div>
+      <WriteEditorClient initialDate={today} publishAction={publishPost} />
     </div>
   );
 }

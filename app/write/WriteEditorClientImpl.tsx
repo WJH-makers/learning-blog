@@ -6,6 +6,7 @@ import { useCreateBlockNote } from "@blocknote/react";
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 const DRAFT_KEY = "wjh-learning-blog:write-draft:v1";
+const TOKEN_KEY = "wjh-learning-blog:admin-token";
 const DEFAULT_TAGS = "Java, Git, MySQL, 复盘";
 
 const KNOWLEDGE_CARD_TEMPLATE = [
@@ -130,6 +131,8 @@ export default function WriteEditorClient({ initialDate, publishAction }: WriteE
   const [storedDraftAt, setStoredDraftAt] = useState<string | null>(null);
   const [draftStatus, setDraftStatus] = useState("正在准备本地写作台……");
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
+  const [savedToken, setSavedToken] = useState("");
+  const [rememberToken, setRememberToken] = useState(false);
 
   const contentInputRef = useRef<HTMLInputElement>(null);
   const programmaticChangeUntilRef = useRef(0);
@@ -241,6 +244,11 @@ export default function WriteEditorClient({ initialDate, publishAction }: WriteE
       syncMarkdown();
       setDraftStatus("已载入知识卡片模板；开始输入后会自动保存到本机。");
     }
+    const storedToken = window.localStorage.getItem(TOKEN_KEY);
+    if (storedToken) {
+      setSavedToken(storedToken);
+      setRememberToken(true);
+    }
     setDraftLoaded(true);
   }, [restoreDraft, syncMarkdown]);
 
@@ -297,6 +305,9 @@ export default function WriteEditorClient({ initialDate, publishAction }: WriteE
       return;
     }
 
+    if (rememberToken && savedToken) {
+      window.localStorage.setItem(TOKEN_KEY, savedToken);
+    }
     setValidationMessage(null);
     saveDraft("发布前已保存本地草稿：{time}");
   }
@@ -370,7 +381,14 @@ export default function WriteEditorClient({ initialDate, publishAction }: WriteE
           </label>
           <label>
             <span>发布密钥</span>
-            <input name="token" type="password" autoComplete="off" placeholder="BLOG_ADMIN_TOKEN" required />
+            <input name="token" type="password" autoComplete="off" placeholder="BLOG_ADMIN_TOKEN" required
+              value={savedToken}
+              onChange={(e) => setSavedToken(e.target.value)}
+            />
+          </label>
+          <label className="remember-token">
+            <input type="checkbox" checked={rememberToken} onChange={(e) => setRememberToken(e.target.checked)} />
+            <span>记住密钥</span>
           </label>
         </div>
 

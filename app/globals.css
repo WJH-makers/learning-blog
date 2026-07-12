@@ -508,6 +508,8 @@ pre code { padding: 0; background: transparent; }
   background: rgba(249,249,247,0.72);
 }
 .form-error { padding: 12px 14px; border: 2px solid var(--accent); color: var(--accent); background: var(--paper); font-family: var(--font-mono); font-weight: 800; }
+.auth-status { padding: 10px 14px; border-left: 4px solid var(--foreground); background: rgba(239,246,233,0.8); font-size: 0.9rem; }
+.login-bar { margin-top: -8px; }
 .editor-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);

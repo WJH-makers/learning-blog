@@ -1,6 +1,7 @@
 import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { checkDatabaseConnection, createDatabasePost, databaseProviderLabel, hasDatabaseConfig } from "@/lib/db";
 import WriteEditorClient from "./WriteEditorClient";
 
@@ -35,7 +36,10 @@ async function publishPost(formData: FormData) {
   "use server";
 
   const expectedToken = process.env.BLOG_ADMIN_TOKEN?.trim();
-  const token = String(formData.get("token") ?? "").trim();
+  const cookieStore = await cookies();
+  const cookieToken = cookieStore.get("blog_admin_token")?.value?.trim();
+  const formToken = String(formData.get("token") ?? "").trim();
+  const token = formToken || cookieToken || "";
 
   if (!expectedToken) {
     redirect("/write?error=missing-token-env" as Route);
@@ -43,6 +47,16 @@ async function publishPost(formData: FormData) {
 
   if (token !== expectedToken) {
     redirect("/write?error=bad-token" as Route);
+  }
+
+  if (!cookieToken) {
+    cookieStore.set("blog_admin_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+    });
   }
 
   let slug: string;
@@ -74,6 +88,13 @@ function errorMessage(code?: string): string | undefined {
   return decodeURIComponent(code);
 }
 
+async function checkAuth(): Promise<boolean> {
+  const expected = process.env.BLOG_ADMIN_TOKEN?.trim();
+  if (!expected) return false;
+  const cookieStore = await cookies();
+  return cookieStore.get("blog_admin_token")?.value?.trim() === expected;
+}
+
 export default async function WritePage({ searchParams }: Props) {
   const { error } = await searchParams;
   const today = new Date().toISOString().slice(0, 10);
@@ -82,6 +103,7 @@ export default async function WritePage({ searchParams }: Props) {
   const tokenReady = Boolean(process.env.BLOG_ADMIN_TOKEN?.trim());
   const publishingReady = dbStatus.ok && tokenReady;
   const message = errorMessage(error);
+  const isAuthenticated = await checkAuth();
 
   return (
     <div className="page-shell editor-shell">
@@ -104,7 +126,7 @@ export default async function WritePage({ searchParams }: Props) {
 
       {message ? <p className="form-error">E42: {message}</p> : null}
 
-      <WriteEditorClient initialDate={today} publishAction={publishPost} />
+      <WriteEditorClient initialDate={today} publishAction={publishPost} isAuthenticated={isAuthenticated} />
     </div>
   );
 }

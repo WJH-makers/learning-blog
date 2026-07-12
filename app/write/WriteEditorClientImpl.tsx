@@ -76,6 +76,7 @@ type PublishAction = (formData: FormData) => void | Promise<void>;
 type WriteEditorClientProps = {
   initialDate: string;
   publishAction: PublishAction;
+  isAuthenticated: boolean;
 };
 
 type Draft = {
@@ -120,7 +121,7 @@ function formatDraftTime(value?: string | null): string {
   }).format(date);
 }
 
-export default function WriteEditorClient({ initialDate, publishAction }: WriteEditorClientProps) {
+export default function WriteEditorClient({ initialDate, publishAction, isAuthenticated }: WriteEditorClientProps) {
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [tags, setTags] = useState(DEFAULT_TAGS);
@@ -133,6 +134,7 @@ export default function WriteEditorClient({ initialDate, publishAction }: WriteE
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const [savedToken, setSavedToken] = useState("");
   const [rememberToken, setRememberToken] = useState(false);
+  const [loggingIn, setLoggingIn] = useState(false);
 
   const contentInputRef = useRef<HTMLInputElement>(null);
   const programmaticChangeUntilRef = useRef(0);
@@ -282,6 +284,33 @@ export default function WriteEditorClient({ initialDate, publishAction }: WriteE
     setDraftStatus("已重置为知识卡片模板，保存后会覆盖本地草稿。");
   }
 
+  async function handleLogin() {
+    if (!savedToken.trim()) {
+      setValidationMessage("请先输入发布密钥。");
+      return;
+    }
+    setLoggingIn(true);
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: savedToken.trim() }),
+      });
+      if (res.ok) {
+        if (rememberToken) {
+          window.localStorage.setItem(TOKEN_KEY, savedToken.trim());
+        }
+        window.location.reload();
+      } else {
+        setValidationMessage("密钥不正确，登录失败。");
+      }
+    } catch {
+      setValidationMessage("登录请求失败，请检查网络。");
+    } finally {
+      setLoggingIn(false);
+    }
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     const nextMarkdown = syncMarkdown();
     const trimmedMarkdown = nextMarkdown.trim();
@@ -305,7 +334,7 @@ export default function WriteEditorClient({ initialDate, publishAction }: WriteE
       return;
     }
 
-    if (rememberToken && savedToken) {
+    if (!isAuthenticated && rememberToken && savedToken) {
       window.localStorage.setItem(TOKEN_KEY, savedToken);
     }
     setValidationMessage(null);
@@ -326,6 +355,12 @@ export default function WriteEditorClient({ initialDate, publishAction }: WriteE
             <span>{markdownCharCount} chars</span>
           </div>
         </div>
+
+        {isAuthenticated ? (
+          <div className="auth-status ok">
+            <span>凭证状态：已登录（Cookie），无需输入发布密钥</span>
+          </div>
+        ) : null}
 
         <label className="title-field">
           <span>标题</span>
@@ -379,18 +414,36 @@ export default function WriteEditorClient({ initialDate, publishAction }: WriteE
               }}
             />
           </label>
-          <label>
-            <span>发布密钥</span>
-            <input name="token" type="password" autoComplete="off" placeholder="BLOG_ADMIN_TOKEN" required
-              value={savedToken}
-              onChange={(e) => setSavedToken(e.target.value)}
-            />
-          </label>
-          <label className="remember-token">
-            <input type="checkbox" checked={rememberToken} onChange={(e) => setRememberToken(e.target.checked)} />
-            <span>记住密钥</span>
-          </label>
+
+          {isAuthenticated ? null : (
+            <>
+              <label>
+                <span>发布密钥</span>
+                <input
+                  name="token"
+                  type="password"
+                  autoComplete="off"
+                  placeholder="BLOG_ADMIN_TOKEN"
+                  required
+                  value={savedToken}
+                  onChange={(e) => setSavedToken(e.target.value)}
+                />
+              </label>
+              <label className="remember-token">
+                <input type="checkbox" checked={rememberToken} onChange={(e) => setRememberToken(e.target.checked)} />
+                <span>记住密钥</span>
+              </label>
+            </>
+          )}
         </div>
+
+        {isAuthenticated ? null : (
+          <div className="hero-actions login-bar">
+            <button className="button primary" type="button" disabled={loggingIn} onClick={handleLogin}>
+              {loggingIn ? "登录中……" : "登录并记住凭证"}
+            </button>
+          </div>
+        )}
 
         <input ref={contentInputRef} type="hidden" name="content" defaultValue={markdown} />
 
@@ -434,7 +487,7 @@ export default function WriteEditorClient({ initialDate, publishAction }: WriteE
         <details className="tips-panel" open>
           <summary>知识卡片技巧</summary>
           <ol>
-            <li><strong>先写概念</strong><span>第一段只回答“今天懂了什么”。</span></li>
+            <li><strong>先写概念</strong><span>第一段只回答"今天懂了什么"。</span></li>
             <li><strong>再放证据</strong><span>命令、代码、截图结论比长解释更有用。</span></li>
             <li><strong>最后留下一步</strong><span>给明天一个可执行动作，不写空口号。</span></li>
           </ol>

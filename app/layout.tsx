@@ -16,6 +16,12 @@ export const metadata: Metadata = {
   description: "WJH-makers 的 GitHub 个人主页与学习博客。",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const date = new Intl.DateTimeFormat("zh-CN", {
     dateStyle: "long",

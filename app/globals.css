@@ -914,7 +914,45 @@ textarea:focus { outline: 0; background: var(--neutral-100); }
   overflow: hidden;
 }
 
+/* ===== Tablet ===== */
 @media (max-width: 860px) {
+  .edition-bar { grid-template-columns: repeat(3, 1fr); }
+  .edition-bar span { border-right: 1px solid var(--border); }
+  .edition-bar span:last-child { border-right: 0; }
+
+  .hero,
+  .profile-hero { grid-template-columns: minmax(0, 1fr) minmax(220px, 380px); }
+  .review-steps { grid-template-columns: repeat(2, 1fr); }
+  .track-grid { grid-template-columns: repeat(2, 1fr); }
+  .repo-grid { grid-template-columns: repeat(2, 1fr); }
+  .post-grid { grid-template-columns: repeat(2, 1fr); }
+  .editor-layout { grid-template-columns: minmax(0, 1fr) minmax(240px, 300px); }
+  .footer { grid-template-columns: 1fr 1fr; }
+  .section-head { grid-template-columns: minmax(0, 1fr) auto; }
+  .form-grid { grid-template-columns: 160px 1fr; }
+  .meta-grid { grid-template-columns: 140px 1fr 1fr; }
+  .list-item { grid-template-columns: 130px minmax(0, 1fr); }
+
+  .nav-links { border-left: 0; flex-wrap: wrap; border-top: 1px solid var(--border); }
+  .nav-links a { flex: 1 1 50%; border-top: 0; }
+  .hero > div { border-right: 1px solid var(--border); }
+  .hero-text::first-letter { font-size: 4.5rem; }
+  .article-content > p:first-of-type::first-letter { font-size: 4rem; }
+  h1 { font-size: clamp(3rem, 11vw, 5.4rem); }
+  h2 { font-size: clamp(2rem, 5vw, 3.6rem); }
+  .editor-shell .page-title { grid-template-columns: 1fr; }
+  .nav-links a { font-size: 0.7rem; padding: 0 10px; }
+
+  .edition-bar,
+  .nav,
+  .footer,
+  .page-shell { width: calc(100% - 24px); }
+
+  .brand { font-size: clamp(1.2rem, 3.5vw, 2.2rem); }
+}
+
+/* ===== Mobile ===== */
+@media (max-width: 640px) {
   .edition-bar,
   .nav,
   .hero,
@@ -927,14 +965,65 @@ textarea:focus { outline: 0; background: var(--neutral-100); }
   .list-item,
   .form-grid,
   .editor-layout,
-  .footer {
+  .meta-grid,
+  .footer,
+  .section-head,
+  .editor-shell .page-title,
+  .write-command {
     grid-template-columns: 1fr;
   }
-  .nav-links { border-top: 1px solid var(--border); border-left: 0; flex-wrap: wrap; }
-  .nav-links a { flex: 1 1 50%; border-top: 0; }
-  .hero > div { border-right: 1px solid var(--border); }
-  .section-head { grid-template-columns: 1fr; align-items: start; }
-  .hero-text::first-letter,
-  .article-content > p:first-of-type::first-letter { font-size: 4rem; }
-  h1 { font-size: clamp(3rem, 17vw, 5.4rem); }
+
+  .edition-bar span { border-right: 0; border-bottom: 1px solid var(--border); }
+  .edition-bar span:last-child { border-bottom: 0; }
+
+  .nav-links a { flex: 1 1 50%; border-bottom: 1px solid var(--border); }
+  .nav-links a:last-child { border-bottom: 0; }
+
+  .page-shell { padding: 20px 0 40px; }
+  .edition-bar,
+  .nav,
+  .footer,
+  .page-shell { width: calc(100% - 16px); }
+
+  .brand { font-size: 1.35rem; padding: 10px 14px; }
+  h1 { font-size: clamp(2.4rem, 14vw, 3.8rem); }
+  h2 { font-size: clamp(1.6rem, 6vw, 2.4rem); }
+  h3 { font-size: clamp(1.2rem, 3.5vw, 1.6rem); }
+  .hero-text::first-letter { font-size: 2.8rem; line-height: 0.9; }
+  .article-content > p:first-of-type::first-letter { font-size: 2.5rem; }
+  .editor-shell .page-title h1 { font-size: clamp(2.2rem, 12vw, 3.6rem); }
+
+  .hero > div { border-right: 0; }
+  .hero-panel { border-top: 1px solid var(--border); }
+
+  .stats-grid strong { font-size: 1.8rem; }
+
+  /* touch targets */
+  .nav-links a { min-height: 48px; font-size: 0.68rem; letter-spacing: 0.08em; }
+  .button, button.button { min-height: 48px; padding: 10px 14px; }
+
+  /* disable ticker animation on mobile */
+  .ticker-track { animation: none; }
+
+  /* prevent horizontal scroll */
+  pre {
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-size: 0.78rem;
+    padding: 12px;
+  }
+  code { font-size: 0.82em; }
+  .article-content { font-size: 0.95rem; padding: clamp(14px, 3vw, 22px); }
+
+  /* footer full-width stacked */
+  .footer span, .footer a { border-right: 0; border-bottom: 1px solid var(--border); text-align: center; padding: 12px 8px; }
+  .footer a:last-child { border-bottom: 0; }
+
+  .list-item { padding: 14px; gap: 10px; }
+  .list-item h2 { font-size: clamp(1.3rem, 4vw, 1.8rem); }
+  .draft-panel dl div { grid-template-columns: 70px 1fr; }
+
+  .db-status { border-left-width: 4px; }
+  .repo-meta { gap: 8px; }
+  .tags a, .tag-cloud a { font-size: 0.65rem; padding: 5px 8px; }
 }

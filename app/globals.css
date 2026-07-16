@@ -833,12 +833,98 @@ textarea:focus { outline: 0; background: var(--neutral-100); }
 }
 .footer span { padding: 16px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 
+.profile-hero {
+  grid-template-columns: minmax(0, 7fr) minmax(240px, 5fr);
+}
+.profile-name {
+  font-size: clamp(3rem, 10vw, 6rem);
+  word-break: break-word;
+}
+.profile-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(18px, 3vw, 32px);
+}
+.profile-avatar {
+  width: min(180px, 80%);
+  height: min(180px, 80%);
+  object-fit: cover;
+  border: 4px solid var(--border);
+  filter: grayscale(100%);
+  transition: filter 300ms ease;
+}
+.profile-avatar:hover { filter: grayscale(0%); }
+.profile-panel .profile-meta {
+  margin-top: 16px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.profile-panel .profile-meta span {
+  display: block;
+  padding: 4px 0;
+}
+
+.repo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border-left: 1px solid var(--border);
+}
+.repo-card {
+  padding: clamp(16px, 2.5vw, 24px);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: rgba(249,249,247,0.9);
+  transition: all 160ms ease-out;
+}
+.repo-card:hover { background: var(--neutral-100); box-shadow: 4px 4px 0 0 var(--foreground); transform: translate(-2px, -2px); }
+.repo-head h3 {
+  font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+.repo-head h3 a { color: var(--foreground); text-decoration: none; }
+.repo-head h3 a:hover { text-decoration: underline; text-decoration-color: var(--accent); text-decoration-thickness: 3px; }
+.repo-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--neutral-600);
+}
+.repo-meta span { display: inline-flex; align-items: center; gap: 4px; }
+.repo-lang { display: inline-flex; align-items: center; gap: 5px; }
+.lang-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.repo-updated { margin-left: auto; color: var(--neutral-500); }
+.repo-card p {
+  font-size: 0.92rem;
+  color: var(--neutral-600);
+  text-align: justify;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 @media (max-width: 860px) {
   .edition-bar,
   .nav,
   .hero,
+  .profile-hero,
   .stats-grid,
   .track-grid,
+  .repo-grid,
   .post-grid,
   .review-steps,
   .list-item,

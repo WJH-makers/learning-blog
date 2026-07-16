@@ -8,12 +8,12 @@ import "./globals.css";
 const writeRoute = "/write" as Route;
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://wjh-makers-learning-blog.vercel.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://wwjjhh.online"),
   title: {
-    default: "万佳泓的学习日志",
-    template: "%s | 万佳泓的学习日志",
+    default: "WJH-makers · GitHub Profile",
+    template: "%s | WJH-makers",
   },
-  description: "记录 Java 全栈、Git、AI、系统、算法与每天学习成果的个人博客。",
+  description: "WJH-makers 的 GitHub 个人主页与学习博客。",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -32,19 +32,19 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <span>Wuhan Edition</span>
           </div>
           <nav className="nav">
-            <Link className="brand" href="/">The WJH Learning Gazette</Link>
+            <Link className="brand" href="/">WJH-makers</Link>
             <div className="nav-links">
-              <Link href="/posts">文章</Link>
+              <a href="https://github.com/WJH-makers" target="_blank" rel="noreferrer">GitHub</a>
+              <Link href="/posts">博客</Link>
               <Link href="/tags">标签</Link>
               <Link href={writeRoute}>写心得</Link>
-              <a href="https://github.com/WJH-makers" target="_blank" rel="noreferrer">GitHub</a>
             </div>
           </nav>
         </header>
         <main>{children}</main>
         <footer className="footer">
           <span>Edition: Vol 1.0 · Printed in UTC+8</span>
-          <span>&copy; {new Date().getFullYear()} WJH-makers · Next.js · MongoDB Atlas · Vercel</span>
+          <span>&copy; {new Date().getFullYear()} WJH-makers · Next.js · Vercel</span>
           <a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">鄂ICP备2026036494号-1</a>
         </footer>
       </body>

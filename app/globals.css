@@ -852,10 +852,7 @@ textarea:focus { outline: 0; background: var(--neutral-100); }
   height: min(180px, 80%);
   object-fit: cover;
   border: 4px solid var(--border);
-  filter: grayscale(100%);
-  transition: filter 300ms ease;
 }
-.profile-avatar:hover { filter: grayscale(0%); }
 .profile-panel .profile-meta {
   margin-top: 16px;
   text-align: center;

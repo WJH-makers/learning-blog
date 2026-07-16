@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getAllTags, getPublishedPostsByTag } from "@/lib/posts";
+import { getAllTags, getPostsByTag } from "@/lib/posts";
 
 type Props = {
   params: Promise<{ tag: string }>;
@@ -10,8 +10,8 @@ export function generateStaticParams() {
   return getAllTags().map(({ tag }) => ({ tag: encodeURIComponent(tag) }));
 }
 
-export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const revalidate = 3600;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { tag } = await params;
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function TagPage({ params }: Props) {
   const { tag } = await params;
   const decoded = decodeURIComponent(tag);
-  const posts = await getPublishedPostsByTag(decoded);
+  const posts = getPostsByTag(decoded);
 
   return (
     <div className="page-shell narrow">

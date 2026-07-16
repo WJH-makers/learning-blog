@@ -1,16 +1,16 @@
 import Link from "next/link";
-import { getAllPublishedTags } from "@/lib/posts";
+import { getAllTags } from "@/lib/posts";
 
 export const metadata = {
   title: "标签",
   description: "按主题浏览学习记录。",
 };
 
-export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const revalidate = 3600;
 
-export default async function TagsPage() {
-  const tags = await getAllPublishedTags();
+export default function TagsPage() {
+  const tags = getAllTags();
 
   return (
     <div className="page-shell narrow">

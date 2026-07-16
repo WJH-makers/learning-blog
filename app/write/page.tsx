@@ -2,7 +2,7 @@ import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
-import { checkDatabaseConnection, createDatabasePost, databaseProviderLabel, hasDatabaseConfig } from "@/lib/db";
+import { createDatabasePost, databaseProviderLabel, hasDatabaseConfig } from "@/lib/db";
 import WriteEditorClient from "./WriteEditorClient";
 
 export const dynamic = "force-dynamic";
@@ -99,9 +99,8 @@ export default async function WritePage({ searchParams }: Props) {
   const { error } = await searchParams;
   const today = new Date().toISOString().slice(0, 10);
   const dbReady = hasDatabaseConfig();
-  const dbStatus = dbReady ? await checkDatabaseConnection() : { ok: false, message: "Missing MONGODB_URI or DATABASE_URL" };
   const tokenReady = Boolean(process.env.BLOG_ADMIN_TOKEN?.trim());
-  const publishingReady = dbStatus.ok && tokenReady;
+  const publishingReady = dbReady && tokenReady;
   const message = errorMessage(error);
   const isAuthenticated = await checkAuth();
 
@@ -119,8 +118,8 @@ export default async function WritePage({ searchParams }: Props) {
         <strong>{publishingReady ? `Publishing Desk Ready：${databaseProviderLabel()}` : "写作发布尚未就绪"}</strong>
         <span>
           {publishingReady
-            ? `可以提交。连接检查：${dbStatus.message}`
-            : `数据库：${dbStatus.message}；密钥：${tokenReady ? "BLOG_ADMIN_TOKEN 已配置" : "缺少 BLOG_ADMIN_TOKEN"}。`}
+            ? "数据库和密钥均已配置，可以提交。"
+            : `数据库：${dbReady ? "已配置" : "未配置 MONGODB_URI"}；密钥：${tokenReady ? "BLOG_ADMIN_TOKEN 已配置" : "缺少 BLOG_ADMIN_TOKEN"}。`}
         </span>
       </section>
 

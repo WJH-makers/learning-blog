@@ -45,7 +45,9 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/deploy_key
+          cat > ~/.ssh/deploy_key << 'KEYEOF'
+${{ secrets.DEPLOY_KEY }}
+KEYEOF
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
@@ -56,3 +58,4 @@ jobs:
             git pull &&
             sudo docker compose up -d --build
           "
+

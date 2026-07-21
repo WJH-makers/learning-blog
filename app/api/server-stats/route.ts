@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { execSync, readFileSync, writeFileSync } from "fs";
-import { existsSync } from "fs";
+import { execSync } from "child_process";
+import { readFileSync, writeFileSync, existsSync } from "fs";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";

@@ -9,6 +9,8 @@ interface CfDay {
   uniques: number;
 }
 
+type ChartRow = Record<string, unknown> & { t: string };
+
 function timeLabel(d: string): string {
   try {
     const dt = new Date(d + "T00:00:00");
@@ -17,7 +19,7 @@ function timeLabel(d: string): string {
 }
 
 function lineChart(
-  data: { t: string; [k: string]: unknown }[],
+  data: ChartRow[],
   keys: { key: string; label: string; color: string }[],
   w: number,
   h: number,

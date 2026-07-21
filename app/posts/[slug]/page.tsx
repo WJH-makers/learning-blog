@@ -28,9 +28,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 function splitSections(markdown: string): string[] {
-  const sections = markdown.split(/(?=^## )/m).filter(Boolean);
-  if (sections.length === 0) return [markdown];
-  return sections;
+  const lines = markdown.split(/\r?\n/);
+  const sections: string[] = [];
+  let current: string[] = [];
+  let inFence = false;
+  for (const line of lines) {
+    if (line.startsWith("```")) inFence = !inFence;
+    if (!inFence && /^# /.test(line) && current.some((l) => l.trim())) {
+      sections.push(current.join("\n"));
+      current = [];
+    }
+    current.push(line);
+  }
+  if (current.some((l) => l.trim())) sections.push(current.join("\n"));
+  return sections.length > 0 ? sections : [markdown];
 }
 
 export default async function PostPage({ params, searchParams }: Props) {
@@ -44,7 +55,7 @@ export default async function PostPage({ params, searchParams }: Props) {
   const page = Math.max(1, Math.min(sections.length, isNaN(rawPage) ? 1 : rawPage));
   const content = sections[page - 1];
   const contentHtml = await markdownToHtml(content);
-  const sectionTitle = content.match(/^## (.+)/m)?.[1] ?? "";
+  const sectionTitle = content.match(/^# (.+)/m)?.[1] ?? "";
 
   return (
     <article className="page-shell article-shell">

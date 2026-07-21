@@ -28,20 +28,38 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 function splitSections(markdown: string): string[] {
-  const lines = markdown.split(/\r?\n/);
-  const sections: string[] = [];
-  let current: string[] = [];
-  let inFence = false;
-  for (const line of lines) {
-    if (line.startsWith("```")) inFence = !inFence;
-    if (!inFence && /^# /.test(line) && current.some((l) => l.trim())) {
-      sections.push(current.join("\n"));
-      current = [];
+  const splitByHeading = (text: string, level: 1 | 2): string[] => {
+    const re = level === 1 ? /^# / : /^## /;
+    const lines = text.split(/\r?\n/);
+    const out: string[] = [];
+    let cur: string[] = [];
+    let fence = false;
+    for (const line of lines) {
+      if (line.startsWith("```")) fence = !fence;
+      if (!fence && re.test(line) && cur.some((l) => l.trim())) {
+        out.push(cur.join("\n"));
+        cur = [];
+      }
+      cur.push(line);
     }
-    current.push(line);
+    if (cur.some((l) => l.trim())) out.push(cur.join("\n"));
+    return out;
+  };
+
+  const MAX_LINES = 220;
+  const blocks = splitByHeading(markdown, 1);
+  if (blocks.length === 0) return [markdown];
+
+  const result: string[] = [];
+  for (const block of blocks) {
+    if (block.split("\n").length <= MAX_LINES) {
+      result.push(block);
+    } else {
+      const subs = splitByHeading(block, 2);
+      result.push(...(subs.length > 1 ? subs : [block]));
+    }
   }
-  if (current.some((l) => l.trim())) sections.push(current.join("\n"));
-  return sections.length > 0 ? sections : [markdown];
+  return result.length > 0 ? result : [markdown];
 }
 
 export default async function PostPage({ params, searchParams }: Props) {
@@ -55,7 +73,7 @@ export default async function PostPage({ params, searchParams }: Props) {
   const page = Math.max(1, Math.min(sections.length, isNaN(rawPage) ? 1 : rawPage));
   const content = sections[page - 1];
   const contentHtml = await markdownToHtml(content);
-  const sectionTitle = content.match(/^# (.+)/m)?.[1] ?? "";
+  const sectionTitle = content.match(/^#{1,2} (.+)/m)?.[1] ?? "";
 
   return (
     <article className="page-shell article-shell">

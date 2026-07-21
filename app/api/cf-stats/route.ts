@@ -29,25 +29,28 @@ export async function GET() {
     const today = new Date().toISOString().slice(0, 10);
     const lastWeek = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
 
+    const query = JSON.stringify({
+      query: `{viewer{zones(filter:{zoneTag:"${zone}"}){today:httpRequests1dGroups(limit:1,filter:{date_geq:"${today}",date_leq:"${today}"}){sum{requests bytes pageViews threats}uniq{uniques}}week:httpRequests1dGroups(limit:7,filter:{date_geq:"${lastWeek}",date_leq:"${today}"}){sum{requests bytes threats}}}}}`,
+    });
+
     const res = await fetch("https://api.cloudflare.com/client/v4/graphql", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        query: `{viewer{zones(filter:{zoneTag:"${zone}"}){httpRequests1dGroups(limit:1,filter:{date_geq:"${today}",date_leq:"${today}"}){sum{requests bytes pageViews threats}uniq{uniques}}}httpRequests1dGroups:httpRequests1dGroups(limit:7,filter:{date_geq:"${lastWeek}",date_leq:"${today}"}){sum{requests bytes threats}}}}`,
-      }),
+      body: query,
     });
 
     const json = await res.json();
-    const groups = json?.data?.viewer?.zones?.[0]?.httpRequests1dGroups ?? [];
-    const week = json?.data?.viewer?.zones?.[0]?.httpRequests1dGroups ?? [];
+    const zoneData = json?.data?.viewer?.zones?.[0];
+    const todayStats = zoneData?.today?.[0]?.sum ?? {};
+    const todayUniq = zoneData?.today?.[0]?.uniq?.uniques ?? 0;
+    const weekData = zoneData?.week ?? [];
 
-    const todayStats = groups[0]?.sum ?? {};
-    const weekRequests = week.reduce((a: number, b: { sum: { requests: number } }) => a + (b.sum?.requests ?? 0), 0);
-    const weekThreats = week.reduce((a: number, b: { sum: { threats: number } }) => a + (b.sum?.threats ?? 0), 0);
-    const weekBytes = week.reduce((a: number, b: { sum: { bytes: number } }) => a + (b.sum?.bytes ?? 0), 0);
+    const weekRequests = weekData.reduce((a: number, b: { sum: { requests: number } }) => a + (b.sum?.requests ?? 0), 0);
+    const weekThreats = weekData.reduce((a: number, b: { sum: { threats: number } }) => a + (b.sum?.threats ?? 0), 0);
+    const weekBytes = weekData.reduce((a: number, b: { sum: { bytes: number } }) => a + (b.sum?.bytes ?? 0), 0);
 
     const data = {
       today: {
@@ -55,7 +58,7 @@ export async function GET() {
         bandwidth: fmt(todayStats.bytes ?? 0),
         views: fmt(todayStats.pageViews ?? 0),
         threats: todayStats.threats ?? 0,
-        uniques: groups[0]?.uniq?.uniques ?? 0,
+        uniques: todayUniq,
       },
       week: {
         requests: fmt(weekRequests),

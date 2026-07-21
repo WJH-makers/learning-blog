@@ -1096,4 +1096,9 @@ textarea:focus { outline: 0; background: var(--neutral-100); }
       linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(var(--paper-rgb), 0.92)),
       var(--paper);
   }
+  .article-content .shiki,
+  .article-content .shiki span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+  }
 }

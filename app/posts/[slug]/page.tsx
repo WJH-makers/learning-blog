@@ -31,6 +31,8 @@ export default async function PostPage({ params }: Props) {
   const post = await getPublishedPost(slug);
   if (!post) notFound();
 
+  const contentHtml = await markdownToHtml(post.content);
+
   return (
     <article className="page-shell article-shell">
       <Link className="back-link" href="/posts">← 返回文章列表</Link>
@@ -42,7 +44,7 @@ export default async function PostPage({ params }: Props) {
           {post.tags.map((tag) => <Link key={tag} href={`/tags/${encodeURIComponent(tag)}`}>{tag}</Link>)}
         </div>
       </header>
-      <div className="article-content" dangerouslySetInnerHTML={{ __html: markdownToHtml(post.content) }} />
+      <div className="article-content" dangerouslySetInnerHTML={{ __html: contentHtml }} />
       <nav className="article-actions" aria-label="文章操作">
         <AdminEditLink slug={post.slug} />
         <Link className="button primary" href="/write">写今日心得</Link>

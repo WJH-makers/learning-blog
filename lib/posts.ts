@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { getDatabasePost, getDatabasePosts } from "@/lib/db";
+import { codeToHtml } from "shiki";
 
 export type Post = {
   slug: string;
@@ -151,32 +152,47 @@ function inlineMarkdown(value: string): string {
   const escaped = escapeHtml(value);
   return escaped
     .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '<img src="$2" alt="$1" loading="lazy" />')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>')
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>');
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>");
 }
 
-export function markdownToHtml(markdown: string): string {
+async function highlightCode(code: string, lang: string): Promise<string> {
+  const language = lang.trim() || "text";
+  const opts = { themes: { light: "github-light", dark: "github-dark" }, defaultColor: false } as const;
+  try {
+    return await codeToHtml(code, { lang: language, ...opts });
+  } catch {
+    return await codeToHtml(code, { lang: "text", ...opts });
+  }
+}
+
+export async function markdownToHtml(markdown: string): Promise<string> {
   const lines = markdown.split(/\r?\n/);
   const html: string[] = [];
   let inCode = false;
   let codeLines: string[] = [];
-  let inList = false;
+  let codeLang = "";
+  let listType: "ul" | "ol" | null = null;
 
   const closeList = () => {
-    if (inList) {
-      html.push("</ul>");
-      inList = false;
+    if (listType) {
+      html.push(`</${listType}>`);
+      listType = null;
     }
   };
 
   for (const line of lines) {
     if (line.startsWith("```")) {
       if (inCode) {
-        html.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+        html.push(await highlightCode(codeLines.join("\n"), codeLang));
         codeLines = [];
+        codeLang = "";
         inCode = false;
       } else {
         closeList();
+        codeLang = line.slice(3);
         inCode = true;
       }
       continue;
@@ -192,7 +208,10 @@ export function markdownToHtml(markdown: string): string {
       continue;
     }
 
-    if (line.startsWith("### ")) {
+    if (/^(---|\*\*\*|___)\s*$/.test(line)) {
+      closeList();
+      html.push("<hr />");
+    } else if (line.startsWith("### ")) {
       closeList();
       html.push(`<h3>${inlineMarkdown(line.slice(4))}</h3>`);
     } else if (line.startsWith("## ")) {
@@ -204,12 +223,20 @@ export function markdownToHtml(markdown: string): string {
     } else if (line.startsWith("> ")) {
       closeList();
       html.push(`<blockquote>${inlineMarkdown(line.slice(2))}</blockquote>`);
-    } else if (/^-\s+/.test(line)) {
-      if (!inList) {
-        html.push("<ul>");
-        inList = true;
+    } else if (/^\d+\.\s+/.test(line)) {
+      if (listType !== "ol") {
+        closeList();
+        html.push("<ol>");
+        listType = "ol";
       }
-      html.push(`<li>${inlineMarkdown(line.replace(/^-\s+/, ""))}</li>`);
+      html.push(`<li>${inlineMarkdown(line.replace(/^\d+\.\s+/, ""))}</li>`);
+    } else if (/^[-*]\s+/.test(line)) {
+      if (listType !== "ul") {
+        closeList();
+        html.push("<ul>");
+        listType = "ul";
+      }
+      html.push(`<li>${inlineMarkdown(line.replace(/^[-*]\s+/, ""))}</li>`);
     } else {
       closeList();
       html.push(`<p>${inlineMarkdown(line)}</p>`);
@@ -217,7 +244,7 @@ export function markdownToHtml(markdown: string): string {
   }
 
   closeList();
-  if (inCode) html.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+  if (inCode) html.push(await highlightCode(codeLines.join("\n"), codeLang));
   return html.join("\n");
 }
 

@@ -5,17 +5,18 @@ export const runtime = "nodejs";
 
 export async function GET() {
   const base = siteUrl();
-  const items = (await getAllPublishedPosts())
-    .map((post) => `
+  const posts = await getAllPublishedPosts();
+  const items = (await Promise.all(
+    posts.map(async (post) => `
       <item>
         <title><![CDATA[${post.title}]]></title>
         <link>${base}/posts/${post.slug}</link>
         <guid>${base}/posts/${post.slug}</guid>
         <pubDate>${new Date(post.date).toUTCString()}</pubDate>
         <description><![CDATA[${post.summary}]]></description>
-        <content:encoded><![CDATA[${markdownToHtml(post.content)}]]></content:encoded>
+        <content:encoded><![CDATA[${await markdownToHtml(post.content)}]]></content:encoded>
       </item>`)
-    .join("");
+  )).join("");
 
   const xml = `<?xml version="1.0" encoding="UTF-8" ?>
     <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">

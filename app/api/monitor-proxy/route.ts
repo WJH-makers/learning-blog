@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-const NETDATA = "http://127.0.0.1:19999";
+const NETDATA = process.env.NETDATA_URL ?? "http://127.0.0.1:19999";
 
 export async function GET(_req: Request) {
   const cookieStore = await cookies();

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import MonitorView from "./View";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -6,6 +6,15 @@ export const runtime = "nodejs";
 interface CfStats {
   today: { requests: string; bandwidth: string; views: string; threats: number; uniques: number };
   week: { requests: string; bandwidth: string; threats: number };
+}
+
+interface Srv {
+  cpu: number;
+  mem: { total: number; used: number; pct: number };
+  load: number;
+  uptime: string;
+  disk: string;
+  spark: { t: number; cpu: number; mem: number }[];
 }
 
 async function getStats<T>(path: string): Promise<T | null> {
@@ -21,7 +30,7 @@ async function getStats<T>(path: string): Promise<T | null> {
 
 export default async function MonitorPage() {
   const stats = await getStats<CfStats>("/api/cf-stats");
-  const srv = await getStats<{ cpu: number; mem: { total: number; used: number; pct: number }; load: { load1: number; load5: number }; uptime: string; disk: string }>("/api/server-stats");
+  const srv = await getStats<Srv>("/api/server-stats");
 
   return (
     <div className="page-shell narrow">
@@ -32,27 +41,11 @@ export default async function MonitorPage() {
         </div>
       </section>
 
-      {srv && (
-        <>
-          <div className="section-head" style={{ marginTop: 12 }}>
-            <div>
-              <p className="eyebrow">Server</p>
-              <h2>服务器资源</h2>
-            </div>
-            <span className="muted">运行 {srv.uptime}</span>
-          </div>
-          <section className="stats-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-            <div><strong>{srv.cpu}%</strong><span>CPU使用</span></div>
-            <div><strong>{srv.mem.pct}%</strong><span>内存 ({srv.mem.used}MB/{srv.mem.total}MB)</span></div>
-            <div><strong>{srv.load.load1.toFixed(1)}</strong><span>负载 1分钟</span></div>
-            <div><strong>{srv.disk}</strong><span>磁盘</span></div>
-          </section>
-        </>
-      )}
+      <MonitorView initial={srv} />
 
       {stats && (
         <>
-          <div className="section-head" style={{ marginTop: 12 }}>
+          <div className="section-head" style={{ marginTop: 20 }}>
             <div>
               <p className="eyebrow">Traffic</p>
               <h2>网站流量</h2>
@@ -74,7 +67,7 @@ export default async function MonitorPage() {
         </>
       )}
 
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 28 }}>
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24 }}>
         <a href="https://monitor.wwjjhh.online" target="_blank" rel="noreferrer" className="button primary">
           Netdata 系统大盘
         </a>

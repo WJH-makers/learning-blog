@@ -39,7 +39,7 @@ export default function MonitorLoginPage() {
 
   return (
     <div className="page-shell">
-      <section className="hero profile-hero" style={{ maxWidth: 420, margin: "0 auto" }}>
+      <section className="hero monitor-hero">
         <div>
           <p className="eyebrow">Monitor Access</p>
           <h1 className="profile-name">监控面板</h1>
@@ -49,7 +49,7 @@ export default function MonitorLoginPage() {
         </div>
       </section>
 
-      <form onSubmit={handleSubmit} style={{ maxWidth: 380, margin: "0 auto" }}>
+      <form onSubmit={handleSubmit} style={{ maxWidth: 380, margin: "0 auto", paddingTop: 8 }}>
         <label className="form-label" htmlFor="monitor-user">用户名</label>
         <input
           id="monitor-user"

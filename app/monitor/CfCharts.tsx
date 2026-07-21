@@ -16,15 +16,15 @@ function timeLabel(d: string): string {
   } catch { return d; }
 }
 
-function lineChart<T extends Record<string, number>>(
-  data: { t: string }[],
-  keys: { key: keyof T; label: string; color: string }[],
+function lineChart(
+  data: { t: string; [k: string]: unknown }[],
+  keys: { key: string; label: string; color: string }[],
   w: number,
   h: number,
 ) {
   if (!data || data.length < 2) return null;
 
-  const allMax = Math.max(1, ...data.flatMap(d => keys.map(k => Number(d[k.key]) ?? 0)));
+  const allMax = Math.max(1, ...data.flatMap(d => keys.map(k => Number(d[k.key]) || 0)));
   const pad = 28;
   const bh = h - pad;
   const step = (w - pad * 2) / (data.length - 1);
@@ -34,7 +34,7 @@ function lineChart<T extends Record<string, number>>(
       {keys.map((k, ki) => {
         const pts = data.map((d, i) => {
           const x = (pad + i * step).toFixed(1);
-          const y = (bh - ((Number(d[k.key]) ?? 0) / allMax) * (bh - 12)).toFixed(1);
+          const y = (bh - ((Number(d[k.key]) || 0) / allMax) * (bh - 12)).toFixed(1);
           return `${x},${y}`;
         }).join(" ");
         return (
@@ -51,10 +51,10 @@ function lineChart<T extends Record<string, number>>(
         );
       })}
       <text x={pad} y={h - 3} fill="var(--neutral-400)" fontSize="9">
-        {timeLabel(data[0].t)}
+        {timeLabel(String(data[0].t))}
       </text>
       <text x={w - pad} y={h - 3} fill="var(--neutral-400)" fontSize="9" textAnchor="end">
-        {timeLabel(data[data.length - 1].t)}
+        {timeLabel(String(data[data.length - 1].t))}
       </text>
     </svg>
   );
@@ -85,15 +85,15 @@ export default function CfCharts({
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <div style={{ flex: 1, minWidth: 200 }}>
               <span style={{ fontSize: "0.65rem", color: "#e55" }}>Requests</span>
-              {lineChart(week_chart as unknown as { t: string }[], [{ key: "requests" as keyof CfDay, label: "Requests", color: "#e55" }], 320, 52)}
+              {lineChart(week_chart, [{ key: "requests", label: "Requests", color: "#e55" }], 320, 52)}
             </div>
             <div style={{ flex: 1, minWidth: 200 }}>
               <span style={{ fontSize: "0.65rem", color: "#36a" }}>Views</span>
-              {lineChart(week_chart as unknown as { t: string }[], [{ key: "views" as keyof CfDay, label: "Views", color: "#36a" }], 320, 52)}
+              {lineChart(week_chart, [{ key: "views", label: "Views", color: "#36a" }], 320, 52)}
             </div>
             <div style={{ flex: 1, minWidth: 200 }}>
               <span style={{ fontSize: "0.65rem", color: "#e9c46a" }}>Uniques</span>
-              {lineChart(week_chart as unknown as { t: string }[], [{ key: "uniques" as keyof CfDay, label: "Uniques", color: "#e9c46a" }], 320, 52)}
+              {lineChart(week_chart, [{ key: "uniques", label: "Uniques", color: "#e9c46a" }], 320, 52)}
             </div>
           </div>
         </div>
@@ -103,9 +103,9 @@ export default function CfCharts({
         <div style={{ marginTop: 12 }}>
           <p className="eyebrow" style={{ marginBottom: 4 }}>30 Days — Requests & Threats</p>
           <div style={{ maxWidth: 680 }}>
-            {lineChart(month_chart as unknown as { t: string }[], [
-              { key: "requests" as keyof typeof month_chart[0], label: "Requests", color: "#888" },
-              { key: "threats" as keyof typeof month_chart[0], label: "Threats", color: "#e55" },
+            {lineChart(month_chart, [
+              { key: "requests", label: "Requests", color: "#888" },
+              { key: "threats", label: "Threats", color: "#e55" },
             ], 660, 60)}
           </div>
         </div>

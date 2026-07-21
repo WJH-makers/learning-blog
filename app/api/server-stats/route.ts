@@ -9,17 +9,31 @@ const DATA_FILE = "/tmp/monitor-history.json";
 
 type Point = { t: number; cpu: number; mem: number; load: number };
 
+const MAX_POINTS = 10080;
+const MAX_FILE_SIZE = 512_000;
+
 function loadHistory(): Point[] {
   try {
     if (!existsSync(DATA_FILE)) return [];
-    const raw = readFileSync(DATA_FILE, "utf8");
-    const data: Point[] = JSON.parse(raw);
-    return data.filter(p => Date.now() - p.t < 8 * 86400000);
-  } catch { return []; }
+    const stat = readFileSync(DATA_FILE, "utf8");
+    if (stat.length > MAX_FILE_SIZE) return [];
+    const data: Point[] = JSON.parse(stat);
+    const cutoff = Date.now() - 8 * 86400000;
+    return data.filter(p => p.t > cutoff);
+  } catch {
+    try { writeFileSync(DATA_FILE, "[]"); } catch {}
+    return [];
+  }
 }
 
 function saveHistory(data: Point[]) {
-  try { writeFileSync(DATA_FILE, JSON.stringify(data)); } catch {}
+  const trimmed = data.length > MAX_POINTS ? data.slice(-MAX_POINTS) : data;
+  const json = JSON.stringify(trimmed);
+  if (json.length > MAX_FILE_SIZE) {
+    try { writeFileSync(DATA_FILE, JSON.stringify(trimmed.slice(-5000))); } catch {}
+    return;
+  }
+  try { writeFileSync(DATA_FILE, json); } catch {}
 }
 
 function collect(): Point {

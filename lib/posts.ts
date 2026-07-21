@@ -168,6 +168,37 @@ async function highlightCode(code: string, lang: string): Promise<string> {
   }
 }
 
+function parseTableRow(line: string): string[] {
+  let s = line.trim();
+  if (s.startsWith("|")) s = s.slice(1);
+  if (s.endsWith("|")) s = s.slice(0, -1);
+  return s.split("|").map((c) => c.trim());
+}
+
+function tableAligns(sep: string): string[] {
+  return parseTableRow(sep).map((c) => {
+    const l = c.startsWith(":");
+    const r = c.endsWith(":");
+    return l && r ? "center" : r ? "right" : l ? "left" : "";
+  });
+}
+
+function isTableSeparator(line: string): boolean {
+  return /^\s*\|?[\s:|-]+\|?\s*$/.test(line) && line.includes("-") && line.includes("|");
+}
+
+function renderTable(header: string[], aligns: string[], rows: string[][]): string {
+  const cell = (tag: string, text: string, i: number) => {
+    const a = aligns[i] ? ` style="text-align:${aligns[i]}"` : "";
+    return `<${tag}${a}>${inlineMarkdown(text)}</${tag}>`;
+  };
+  const thead = `<thead><tr>${header.map((h, i) => cell("th", h, i)).join("")}</tr></thead>`;
+  const tbody = `<tbody>${rows
+    .map((r) => `<tr>${header.map((_, i) => cell("td", r[i] ?? "", i)).join("")}</tr>`)
+    .join("")}</tbody>`;
+  return `<div class="table-scroll"><table>${thead}${tbody}</table></div>`;
+}
+
 export async function markdownToHtml(markdown: string): Promise<string> {
   const lines = markdown.split(/\r?\n/);
   const html: string[] = [];
@@ -183,7 +214,9 @@ export async function markdownToHtml(markdown: string): Promise<string> {
     }
   };
 
-  for (const line of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
     if (line.startsWith("```")) {
       if (inCode) {
         html.push(await highlightCode(codeLines.join("\n"), codeLang));
@@ -205,6 +238,22 @@ export async function markdownToHtml(markdown: string): Promise<string> {
 
     if (!line.trim()) {
       closeList();
+      continue;
+    }
+
+    // GFM 表格:当前行含 | 且下一行是分隔行(|---|---|)
+    if (line.includes("|") && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
+      closeList();
+      const header = parseTableRow(line);
+      const aligns = tableAligns(lines[i + 1]);
+      const rows: string[][] = [];
+      i += 2;
+      while (i < lines.length && lines[i].includes("|") && lines[i].trim() && !lines[i].startsWith("```")) {
+        rows.push(parseTableRow(lines[i]));
+        i++;
+      }
+      i--;
+      html.push(renderTable(header, aligns, rows));
       continue;
     }
 

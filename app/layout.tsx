@@ -16,10 +16,12 @@ const writeRoute = "/write" as Route;
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://wwjjhh.online"),
   title: {
-    default: "WJH-makers · GitHub Profile",
+    default: "WJH-makers · 学习博客",
     template: "%s | WJH-makers",
   },
-  description: "WJH-makers 的 GitHub 个人主页与学习博客。",
+  description: "CS本科 · 遥感视觉问答 · MoE · 全栈学习记录",
+  robots: { index: true, follow: true },
+  alternates: { types: { "application/rss+xml": "/rss.xml" } },
 };
 
 export const viewport = {

@@ -30,7 +30,7 @@ export default function MonitorLoginPage() {
         setLoading(false);
         return;
       }
-      window.location.href = "/api/monitor";
+      window.location.href = "/monitor/view";
     } catch {
       setError("网络错误，请重试");
       setLoading(false);

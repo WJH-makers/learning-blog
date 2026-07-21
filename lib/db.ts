@@ -67,7 +67,7 @@ function getClient(): Promise<MongoClient> {
 
   if (!clientPromise) {
     const options: MongoClientOptions = {
-      appName: "wjh-makers-learning-blog.vercel",
+      appName: "wjh-makers-blog",
       maxPoolSize: 10,
       maxIdleTimeMS: 5000,
       serverSelectionTimeoutMS: 5000,
@@ -134,14 +134,15 @@ function docToPost(doc: WithId<MongoPostDocument>): Post {
   };
 }
 
-export async function getDatabasePosts(): Promise<Post[]> {
+export async function getDatabasePosts(limit?: number): Promise<Post[]> {
   if (!hasDatabaseConfig()) return [];
   await ensureSchema();
   const collection = await postsCollection();
-  const docs = await collection
+  let cursor = collection
     .find({})
-    .sort({ publishedAt: -1, createdAt: -1 })
-    .toArray();
+    .sort({ publishedAt: -1, createdAt: -1 });
+  if (limit && limit > 0) cursor = cursor.limit(limit);
+  const docs = await cursor.toArray();
   return docs.map(docToPost);
 }
 
@@ -165,13 +166,12 @@ function slugify(input: string): string {
 
 async function uniqueSlug(base: string): Promise<string> {
   const safeBase = base || "daily-note";
-  let slug = safeBase;
-  for (let i = 2; i < 1000; i += 1) {
-    const existing = await getDatabasePost(slug);
-    if (!existing) return slug;
-    slug = `${safeBase}-${i}`;
-  }
-  throw new Error("无法生成唯一 slug，请换一个标题。");
+  const collection = await postsCollection();
+  const max = await collection.countDocuments({
+    slug: { $regex: `^${safeBase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(-\\d+)?$` },
+  });
+  if (max === 0) return safeBase;
+  return `${safeBase}-${max + 1}`;
 }
 
 export async function createDatabasePost(input: NewDatabasePost): Promise<Post> {

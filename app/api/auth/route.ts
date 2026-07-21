@@ -15,7 +15,7 @@ export async function GET() {
   const expected = process.env.BLOG_ADMIN_TOKEN?.trim();
   const cookieStore = await cookies();
   const token = cookieStore.get("blog_admin_token")?.value?.trim();
-  const authed = Boolean(expected) && safeCompare(token ?? "", expected);
+  const authed = Boolean(expected) && safeCompare(token ?? "", expected ?? "");
 
   return NextResponse.json({ authed });
 }

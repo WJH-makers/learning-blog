@@ -1,46 +1,53 @@
 import { NextResponse } from "next/server";
-import { execSync } from "child_process";
+import { execSync, readFileSync, writeFileSync } from "fs";
+import { existsSync } from "fs";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-type Point = { t: number; cpu: number; mem: number };
+const DATA_FILE = "/tmp/monitor-history.json";
 
-const history: Point[] = [];
-const MAX = 20;
+type Point = { t: number; cpu: number; mem: number; load: number };
 
-function parseMem() {
+function loadHistory(): Point[] {
   try {
-    const raw = execSync("free -m | grep Mem:", { encoding: "utf8", timeout: 3000 });
-    const parts = raw.trim().split(/\s+/);
-    const total = parseInt(parts[1], 10);
-    const used = parseInt(parts[2], 10);
-    return { total, used, pct: total ? Math.round((used / total) * 100) : 0 };
-  } catch {
-    return { total: 0, used: 0, pct: 0 };
-  }
+    if (!existsSync(DATA_FILE)) return [];
+    const raw = readFileSync(DATA_FILE, "utf8");
+    const data: Point[] = JSON.parse(raw);
+    return data.filter(p => Date.now() - p.t < 8 * 86400000);
+  } catch { return []; }
 }
 
-function parseCpu() {
+function saveHistory(data: Point[]) {
+  try { writeFileSync(DATA_FILE, JSON.stringify(data)); } catch {}
+}
+
+function collect(): Point {
+  let cpu = 0;
+  let mem = { pct: 0 };
+  let load = 0;
   try {
     const raw = execSync("top -bn1 -d0.3 | grep '%Cpu' | head -1", { encoding: "utf8", timeout: 6000 });
     const m = raw.match(/(\d+\.?\d*)\s*id/);
-    return m ? Math.round(100 - parseFloat(m[1])) : 0;
-  } catch { return 0; }
-}
-
-function parseLoad() {
+    cpu = m ? Math.round(100 - parseFloat(m[1])) : 0;
+  } catch {}
   try {
-    return parseFloat(execSync("cat /proc/loadavg", { encoding: "utf8", timeout: 3000 }).split(/\s+/)[0]);
-  } catch { return 0; }
+    const mraw = execSync("free -m | grep Mem:", { encoding: "utf8", timeout: 3000 });
+    const parts = mraw.trim().split(/\s+/);
+    const total = parseInt(parts[1], 10);
+    const used = parseInt(parts[2], 10);
+    mem = { pct: total ? Math.round((used / total) * 100) : 0 };
+  } catch {}
+  try {
+    load = parseFloat(execSync("cat /proc/loadavg", { encoding: "utf8", timeout: 3000 }).split(/\s+/)[0]);
+  } catch {}
+  return { t: Date.now(), cpu, mem: mem.pct, load };
 }
 
 function parseUptime() {
   try {
     const s = parseInt(execSync("cat /proc/uptime", { encoding: "utf8", timeout: 3000 }).split(" ")[0], 10);
-    const d = Math.floor(s / 86400);
-    const h = Math.floor((s % 86400) / 3600);
-    return d > 0 ? `${d}d ${h}h` : `${h}h`;
+    return `${Math.floor(s / 86400)}d ${Math.floor((s % 86400) / 3600)}h`;
   } catch { return "?"; }
 }
 
@@ -50,20 +57,57 @@ function parseDisk() {
   } catch { return "?"; }
 }
 
-export async function GET() {
-  const mem = parseMem();
-  const cpu = parseCpu();
-  const now = Date.now();
+function downsample(data: Point[], buckets: number): Point[] {
+  if (data.length <= buckets * 2) return data;
+  const step = Math.floor(data.length / buckets);
+  const result: Point[] = [];
+  for (let i = 0; i < data.length - 1; i += step) {
+    const chunk = data.slice(i, Math.min(i + step, data.length));
+    result.push({
+      t: chunk[Math.floor(chunk.length / 2)].t,
+      cpu: Math.round(chunk.reduce((s, p) => s + p.cpu, 0) / chunk.length),
+      mem: Math.round(chunk.reduce((s, p) => s + p.mem, 0) / chunk.length),
+      load: Math.round(chunk.reduce((s, p) => s + p.load, 0) / chunk.length * 10) / 10,
+    });
+  }
+  return result;
+}
 
-  history.push({ t: now, cpu, mem: mem.pct });
-  if (history.length > MAX) history.shift();
+export async function GET() {
+  const now = Date.now();
+  let history = loadHistory();
+
+  const lastTs = history.length > 0 ? history[history.length - 1].t : 0;
+  const gaps = Math.min(Math.floor((now - lastTs) / 60000), 60);
+  if (gaps > 0 && lastTs > 0) {
+    const latest = collect();
+    for (let i = 1; i <= gaps; i++) {
+      history.push({
+        t: lastTs + i * 60000,
+        cpu: latest.cpu,
+        mem: latest.mem,
+        load: latest.load,
+      });
+    }
+  }
+
+  const point = collect();
+  history.push(point);
+  if (history.length > 10080) history = history.slice(-10080);
+  saveHistory(history);
+
+  const dayAgo = now - 86400000;
+  const weekAgo = now - 7 * 86400000;
+  const lastDay = history.filter(p => p.t >= dayAgo);
+  const lastWeek = history.filter(p => p.t >= weekAgo);
 
   return NextResponse.json({
-    cpu,
-    mem,
-    load: parseLoad(),
+    cpu: point.cpu,
+    mem: point.mem,
+    load: point.load,
     uptime: parseUptime(),
     disk: parseDisk(),
-    spark: history.map(h => ({ t: h.t, cpu: h.cpu, mem: h.mem })),
+    day: downsample(lastDay, 48),
+    week: downsample(lastWeek, 56),
   });
 }

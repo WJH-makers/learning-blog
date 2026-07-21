@@ -8,13 +8,15 @@ interface CfStats {
   week: { requests: string; bandwidth: string; threats: number };
 }
 
+interface Point { t: number; cpu: number; mem: number; load: number }
 interface Srv {
   cpu: number;
-  mem: { total: number; used: number; pct: number };
+  mem: number;
   load: number;
   uptime: string;
   disk: string;
-  spark: { t: number; cpu: number; mem: number }[];
+  day: Point[];
+  week: Point[];
 }
 
 async function getStats<T>(path: string): Promise<T | null> {

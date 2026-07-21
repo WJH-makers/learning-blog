@@ -6,22 +6,23 @@ export const runtime = "nodejs";
 
 function parseMeminfo(): { total: number; used: number; free: number; pct: number } {
   try {
-    const raw = execSync("cat /proc/meminfo", { encoding: "utf8", timeout: 3000 });
-    const get = (key: string) => {
-      const m = raw.match(new RegExp(`^${key}:\\s+(\\d+)`, "m"));
-      return m ? parseInt(m[1], 10) : 0;
-    };
-    const total = get("MemTotal");
-    const available = get("MemAvailable");
-    const used = total - available;
-    return {
-      total: Math.round(total / 1024),
-      used: Math.round(used / 1024),
-      free: Math.round(available / 1024),
-      pct: total ? Math.round((used / total) * 100) : 0,
-    };
+    const raw = execSync("free -m | grep Mem:", { encoding: "utf8", timeout: 3000 });
+    const parts = raw.trim().split(/\s+/);
+    const total = parseInt(parts[1], 10);
+    const used = parseInt(parts[2], 10);
+    return { total, used, free: total - used, pct: total ? Math.round((used / total) * 100) : 0 };
   } catch {
     return { total: 0, used: 0, free: 0, pct: 0 };
+  }
+}
+
+function parseCpu(): number {
+  try {
+    const raw = execSync("top -bn1 -d 0.5 | grep '%Cpu' | head -1", { encoding: "utf8", timeout: 6000 });
+    const m = raw.match(/(\d+\.?\d*)\s*id/);
+    return m ? Math.round(100 - parseFloat(m[1])) : 0;
+  } catch {
+    return 0;
   }
 }
 
@@ -54,9 +55,7 @@ export async function GET() {
   const mem = parseMeminfo();
   const load = parseLoadavg();
   const uptime = parseUptime();
-
-  const cpu = execSync("top -bn1 | grep 'Cpu(s)' | awk '{print $2}'", { encoding: "utf8", timeout: 5000 }).trim();
-  const cpuPct = parseFloat(cpu) || 0;
+  const cpuPct = parseCpu();
 
   const disk = execSync("df -h / | tail -1 | awk '{print $3\"/\"$2\" (\"$5\")\"}'", { encoding: "utf8", timeout: 5000 }).trim();
 

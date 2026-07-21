@@ -12,6 +12,12 @@ function fmt(n: number): string {
   return String(n);
 }
 
+interface CfDayGroup {
+  sum: { requests: number; bytes: number; pageViews: number; threats: number };
+  uniq: { uniques: number };
+  dimensions: { date: string };
+}
+
 export async function GET() {
   const token = process.env.CLOUDFLARE_TOKEN;
   const zone = process.env.CLOUDFLARE_ZONE_ID;
@@ -27,30 +33,32 @@ export async function GET() {
 
   try {
     const today = new Date().toISOString().slice(0, 10);
-    const lastWeek = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+    const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
 
     const query = JSON.stringify({
-      query: `{viewer{zones(filter:{zoneTag:"${zone}"}){today:httpRequests1dGroups(limit:1,filter:{date_geq:"${today}",date_leq:"${today}"}){sum{requests bytes pageViews threats}uniq{uniques}}week:httpRequests1dGroups(limit:7,filter:{date_geq:"${lastWeek}",date_leq:"${today}"}){sum{requests bytes threats}}}}}`,
+      query: `{viewer{zones(filter:{zoneTag:"${zone}"}){today:httpRequests1dGroups(limit:1,filter:{date_geq:"${today}",date_leq:"${today}"}){sum{requests bytes pageViews threats}uniq{uniques}}week_days:httpRequests1dGroups(limit:8,filter:{date_geq:"${weekAgo}",date_leq:"${today}"}){dimensions{date}sum{requests bytes pageViews threats}uniq{uniques}}month_days:httpRequests1dGroups(limit:31,filter:{date_geq:"${monthAgo}",date_leq:"${today}"}){dimensions{date}sum{requests threats}}}}}`,
     });
 
     const res = await fetch("https://api.cloudflare.com/client/v4/graphql", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body: query,
     });
 
     const json = await res.json();
-    const zoneData = json?.data?.viewer?.zones?.[0];
-    const todayStats = zoneData?.today?.[0]?.sum ?? {};
-    const todayUniq = zoneData?.today?.[0]?.uniq?.uniques ?? 0;
-    const weekData = zoneData?.week ?? [];
+    const zd = json?.data?.viewer?.zones?.[0];
+    const todayStats = zd?.today?.[0]?.sum ?? {};
+    const todayUniq = zd?.today?.[0]?.uniq?.uniques ?? 0;
+    const weekDays = (zd?.week_days ?? []) as CfDayGroup[];
+    const monthDays = (zd?.month_days ?? []) as CfDayGroup[];
 
-    const weekRequests = weekData.reduce((a: number, b: { sum: { requests: number } }) => a + (b.sum?.requests ?? 0), 0);
-    const weekThreats = weekData.reduce((a: number, b: { sum: { threats: number } }) => a + (b.sum?.threats ?? 0), 0);
-    const weekBytes = weekData.reduce((a: number, b: { sum: { bytes: number } }) => a + (b.sum?.bytes ?? 0), 0);
+    const weekRequests = weekDays.reduce((a: number, d) => a + (d.sum?.requests ?? 0), 0);
+    const weekBytes = weekDays.reduce((a: number, d) => a + (d.sum?.bytes ?? 0), 0);
+    const weekThreats = weekDays.reduce((a: number, d) => a + (d.sum?.threats ?? 0), 0);
 
     const data = {
       today: {
@@ -65,6 +73,19 @@ export async function GET() {
         bandwidth: fmt(weekBytes),
         threats: weekThreats,
       },
+      week_chart: weekDays.map(d => ({
+        t: d.dimensions.date,
+        requests: d.sum?.requests ?? 0,
+        views: d.sum?.pageViews ?? 0,
+        threats: d.sum?.threats ?? 0,
+        bytes: d.sum?.bytes ?? 0,
+        uniques: d.uniq?.uniques ?? 0,
+      })),
+      month_chart: monthDays.map(d => ({
+        t: d.dimensions.date,
+        requests: d.sum?.requests ?? 0,
+        threats: d.sum?.threats ?? 0,
+      })),
     };
 
     CACHE.set("stats", { data, ts: Date.now() });

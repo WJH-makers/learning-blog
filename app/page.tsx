@@ -113,8 +113,8 @@ export default async function HomePage() {
       <section className="hero profile-hero">
         <div>
           <p className="eyebrow">GitHub Profile</p>
-          <h1 className="profile-name">{user?.login || "WJH-makers"}</h1>
-          <p className="hero-text">CS · AI · Full-stack</p>
+          <h1 className="profile-name">{user?.name || user?.login || "WJH-makers"}</h1>
+          {user?.bio && <p className="hero-text">{user.bio}</p>}
           {user?.login && (
             <div className="hero-actions">
               <a className="button primary" href={user.html_url} target="_blank" rel="noreferrer">
@@ -133,7 +133,8 @@ export default async function HomePage() {
             />
           )}
           <div className="profile-meta">
-            <span>📍 China</span>
+            {user?.location && <span>📍 {user.location}</span>}
+            {user?.company && <span>🏢 {user.company}</span>}
           </div>
         </div>
       </section>

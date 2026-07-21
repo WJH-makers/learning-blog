@@ -840,6 +840,8 @@ textarea:focus { outline: 0; background: var(--neutral-100); }
 .footer span,
 .footer a { padding: 16px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .footer a { display: inline-flex; align-items: center; }
+.footer .beian { font-size: 0.68rem; letter-spacing: 0.04em; text-decoration: none; color: var(--neutral-500); }
+.footer .beian:hover { color: var(--foreground); text-decoration: underline; }
 
 .profile-hero {
   grid-template-columns: minmax(0, 7fr) minmax(240px, 5fr);

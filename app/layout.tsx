@@ -50,8 +50,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <main>{children}</main>
         <footer className="footer">
           <span>Edition: Vol 1.0 · Printed in UTC+8</span>
-          <span>&copy; {new Date().getFullYear()} WJH-makers · Next.js · Vercel</span>
-          <a href="https://beian.miit.gov.cn/" target="_blank" rel="noreferrer">鄂ICP备2026036494号-1</a>
+          <span>&copy; {new Date().getFullYear()} WJH-makers</span>
+          <span>
+            <a className="beian" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">鄂ICP备2026036494号-1</a>
+          </span>
         </footer>
       </body>
     </html>

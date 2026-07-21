@@ -35,7 +35,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <div className="edition-bar">
             <span>Vol. 1</span>
             <span>{date}</span>
-            <span>Wuhan Edition</span>
+            <span>UTC+8 Edition</span>
           </div>
           <nav className="nav">
             <Link className="brand" href="/">WJH-makers</Link>

@@ -19,7 +19,8 @@ function timeLabel(d: string): string {
 }
 
 function lineChart(
-  data: ChartRow[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any[],
   keys: { key: string; label: string; color: string }[],
   w: number,
   h: number,

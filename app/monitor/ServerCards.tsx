@@ -9,7 +9,7 @@ function AreaChart({ data, maxH, color, yKey }: { data: Point[]; maxH?: number; 
   if (!data || data.length < 2) return null;
   const w = 300; const h = 64; const pad = 32;
   const vals = data.map(d => d[yKey]);
-  const mx = Math.max(5, maxH ?? ...vals);
+  const mx = maxH ? Math.max(5, maxH) : Math.max(5, ...vals);
   const mn = Math.min(...vals);
   const range = Math.max(mx - mn, 1);
   const step = (w - pad * 2) / (data.length - 1);

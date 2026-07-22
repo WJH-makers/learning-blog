@@ -124,7 +124,12 @@ export default async function PostPage({ params, searchParams }: Props) {
   const rawPage = parseInt(pageParam ?? "1", 10);
   const page = Math.max(1, Math.min(sections.length, isNaN(rawPage) ? 1 : rawPage));
   const content = sections[page - 1];
-  const contentHtml = await markdownToHtml(content);
+  // 正文首行若是与文章标题重复的 H1,去掉(article-header 已展示 H1,避免三重标题)
+  const contentLines = content.split("\n");
+  if (contentLines[0]?.replace(/^#\s+/, "").trim() === post.title.trim()) {
+    contentLines.shift();
+  }
+  const contentHtml = await markdownToHtml(contentLines.join("\n").replace(/^\s+/, ""));
   const sectionTitle = content.match(/^#{1,2} (.+)/m)?.[1] ?? "";
 
   return (
@@ -135,7 +140,7 @@ export default async function PostPage({ params, searchParams }: Props) {
       <header className="article-header">
         <p className="date">{post.date} · {post.readingMinutes} min read</p>
         <h1>{post.title}</h1>
-        {sectionTitle && <p className="eyebrow" style={{ marginTop: 8 }}>§ {sectionTitle}</p>}
+        {sectionTitle && sectionTitle !== post.title && <p className="eyebrow" style={{ marginTop: 8 }}>§ {sectionTitle}</p>}
         <p>{post.summary}</p>
         <div className="tags">
           {post.tags.map((tag) => <Link key={tag} href={`/tags/${encodeURIComponent(tag)}`}>{tag}</Link>)}

@@ -493,8 +493,18 @@ body.fx-cursor-hot .fx-cursor-ring { transform: scale(1.55); box-shadow: 0 0 20p
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   background: rgba(var(--paper-rgb),0.9);
-  font-size: 1.03rem;
-  line-height: 1.75;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.78;
+  letter-spacing: 0.005em;
+}
+.article-content :not(pre) > code {
+  padding: 0.1em 0.4em;
+  font-size: 0.86em;
+  color: var(--accent);
+  background: rgba(217,119,87,0.09);
+  border: 1px solid rgba(217,119,87,0.22);
+  white-space: nowrap;
 }
 .article-content > p:first-of-type::first-letter {
   float: left;

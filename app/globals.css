@@ -486,6 +486,24 @@ a:focus-visible {
 .article-content h2 { padding-bottom: 8px; border-bottom: 1px solid var(--border); }
 .article-content p { margin: 1em 0; text-align: justify; }
 .article-content ul { padding-left: 24px; }
+.article-content ol { padding-left: 24px; }
+.article-content h4 { margin: 1.2em 0 0.4em; font-weight: 700; }
+.article-content h5,
+.article-content h6 { margin: 1.1em 0 0.35em; font-weight: 600; color: var(--accent); }
+.article-content hr { margin: 2.2em 0; border: 0; border-top: 1px solid var(--border); }
+.article-content li.task-item { list-style: none; margin-left: -20px; }
+.article-content li.task-item input { margin-right: 8px; vertical-align: middle; }
+.article-content .table-wrap {
+  overflow-x: auto;
+  margin: 1.4em 0;
+  border: 1px solid var(--border);
+}
+.article-content table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+.article-content th,
+.article-content td { padding: 8px 12px; border: 1px solid var(--border); text-align: left; vertical-align: top; }
+.article-content thead th { background: var(--neutral-100); font-weight: 700; white-space: nowrap; }
+.article-content tbody tr:nth-child(even) { background: rgba(0,0,0,0.025); }
+.article-content table code { white-space: nowrap; }
 .article-content blockquote {
   margin: 20px 0;
   padding: 14px 18px;

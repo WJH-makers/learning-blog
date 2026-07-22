@@ -6,7 +6,7 @@ export const metadata = {
   description: "学习记录文章列表。",
 };
 
-export const revalidate = 3600;
+export const revalidate = 604800;
 export const runtime = "nodejs";
 
 const PAGE_SIZE = 6;
@@ -16,9 +16,10 @@ export default async function PostsPage({
 }: {
   searchParams: { page?: string };
 }) {
+  const sp = await searchParams;
   const posts = await getAllPublishedPosts();
   const totalPages = Math.max(1, Math.ceil(posts.length / PAGE_SIZE));
-  const rawPage = parseInt(searchParams.page ?? "1", 10);
+  const rawPage = parseInt(sp.page ?? "1", 10);
   const page = Math.max(1, Math.min(totalPages, isNaN(rawPage) ? 1 : rawPage));
   const slice = posts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 

@@ -9,6 +9,8 @@ COPY package*.json ./
 RUN npm ci
 
 FROM docker.m.daocloud.io/library/node:20-alpine AS builder
+ARG NEXT_PUBLIC_SITE_URL
+ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 WORKDIR /app
 COPY --from=build-deps /app/node_modules ./node_modules
 COPY . .

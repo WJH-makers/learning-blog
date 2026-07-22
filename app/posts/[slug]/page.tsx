@@ -10,20 +10,43 @@ type Props = {
 };
 
 export async function generateStaticParams() {
-  return (await getAllPublishedPosts()).map((post) => ({ slug: post.slug }));
+  const posts = await getAllPublishedPosts();
+  const params: { slug: string; page?: string }[] = [];
+  for (const post of posts) {
+    params.push({ slug: post.slug });
+    const sections = splitSections(post.content);
+    for (let p = 2; p <= sections.length; p++) {
+      params.push({ slug: post.slug, page: String(p) });
+    }
+  }
+  return params;
 }
 
-export const revalidate = 3600;
+export const revalidate = 604800;
 export const runtime = "nodejs";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPublishedPost(slug);
   if (!post) return {};
+  const url = `${siteUrl()}/posts/${post.slug}`;
   return {
     title: post.title,
     description: post.summary,
-    alternates: { canonical: `${siteUrl()}/posts/${post.slug}` },
+    alternates: { canonical: url },
+    openGraph: {
+      title: post.title,
+      description: post.summary,
+      url,
+      type: "article",
+      publishedTime: post.date,
+      tags: post.tags,
+    },
+    twitter: {
+      card: "summary",
+      title: post.title,
+      description: post.summary,
+    },
   };
 }
 
@@ -68,6 +91,35 @@ export default async function PostPage({ params, searchParams }: Props) {
   const post = await getPublishedPost(slug);
   if (!post) notFound();
 
+  const url = `${siteUrl()}/posts/${post.slug}`;
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "首页", item: siteUrl() },
+      { "@type": "ListItem", position: 2, name: "博客", item: `${siteUrl()}/posts` },
+      { "@type": "ListItem", position: 3, name: post.title, item: url },
+    ],
+  };
+
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.summary,
+    url: `${siteUrl()}/posts/${post.slug}`,
+    datePublished: post.date,
+    author: {
+      "@type": "Person",
+      name: "万佳泓",
+      alternateName: "WJH-makers",
+      url: "https://github.com/WJH-makers",
+    },
+    keywords: post.tags.join(", "),
+    inLanguage: "zh-CN",
+  };
+
   const sections = splitSections(post.content);
   const rawPage = parseInt(pageParam ?? "1", 10);
   const page = Math.max(1, Math.min(sections.length, isNaN(rawPage) ? 1 : rawPage));
@@ -77,6 +129,8 @@ export default async function PostPage({ params, searchParams }: Props) {
 
   return (
     <article className="page-shell article-shell">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <Link className="back-link" href="/posts">← 返回文章列表</Link>
       <header className="article-header">
         <p className="date">{post.date} · {post.readingMinutes} min read</p>

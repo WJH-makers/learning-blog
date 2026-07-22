@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getAllPublishedTags, getPublishedPostsByTag } from "@/lib/posts";
+import { getAllPublishedTags, getPublishedPostsByTag, siteUrl } from "@/lib/posts";
 
 type Props = {
   params: Promise<{ tag: string }>;
@@ -19,6 +19,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `标签：${decoded}`,
     description: `浏览 ${decoded} 相关学习记录。`,
+    openGraph: {
+      title: `标签：${decoded} | WJH-makers`,
+      description: `${decoded} 主题下的学习记录集合`,
+    },
   };
 }
 
@@ -26,9 +30,30 @@ export default async function TagPage({ params }: Props) {
   const { tag } = await params;
   const decoded = decodeURIComponent(tag);
   const posts = await getPublishedPostsByTag(decoded);
+  const url = `${siteUrl()}/tags/${encodeURIComponent(decoded)}`;
+
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: `标签：${decoded}`,
+    description: `${decoded} 相关学习记录`,
+    url,
+    inLanguage: "zh-CN",
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: posts.map((post, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `${siteUrl()}/posts/${post.slug}`,
+        name: post.title,
+        description: post.summary,
+      })),
+    },
+  };
 
   return (
     <div className="page-shell narrow">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
       <Link className="back-link" href="/tags">← 返回标签</Link>
       <div className="page-title">
         <p className="eyebrow">Topic Desk</p>

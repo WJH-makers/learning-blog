@@ -154,17 +154,36 @@ function inlineMarkdown(value: string): string {
     .replace(/`([^`]+)`/g, "<code>$1</code>")
     .replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '<img src="$2" alt="$1" loading="lazy" />')
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>')
+    .replace(/\[([^\]]+)\]\((?!https?:)([^\s)]+)\)/g, '<a href="$2" rel="noreferrer">$1</a>')
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/\*([^*]+)\*/g, "<em>$1</em>");
 }
 
+const highlightCache = new Map<string, string>();
+const MAX_CACHE = 200;
+
 async function highlightCode(code: string, lang: string): Promise<string> {
+  const cacheKey = `${lang}:${code}`;
+  const cached = highlightCache.get(cacheKey);
+  if (cached) return cached;
   const language = lang.trim() || "text";
   const opts = { themes: { light: "github-light", dark: "github-dark" }, defaultColor: false } as const;
   try {
-    return await codeToHtml(code, { lang: language, ...opts });
+    const result = await codeToHtml(code, { lang: language, ...opts });
+    if (highlightCache.size >= MAX_CACHE) {
+      const firstKey = highlightCache.keys().next().value;
+      if (firstKey) highlightCache.delete(firstKey);
+    }
+    highlightCache.set(cacheKey, result);
+    return result;
   } catch {
-    return await codeToHtml(code, { lang: "text", ...opts });
+    const fallbackResult = await codeToHtml(code, { lang: "text", ...opts });
+    if (highlightCache.size >= MAX_CACHE) {
+      const firstKey = highlightCache.keys().next().value;
+      if (firstKey) highlightCache.delete(firstKey);
+    }
+    highlightCache.set(cacheKey, fallbackResult);
+    return fallbackResult;
   }
 }
 
@@ -279,6 +298,15 @@ export async function markdownToHtml(markdown: string): Promise<string> {
         listType = "ol";
       }
       html.push(`<li>${inlineMarkdown(line.replace(/^\d+\.\s+/, ""))}</li>`);
+    } else if (/^[-*]\s+\[([ xX])\]\s+(.*)$/.test(line)) {
+      const taskMatch = line.match(/^[-*]\s+\[([ xX])\]\s+(.*)$/)!;
+      if (listType !== "ul") {
+        closeList();
+        html.push("<ul>");
+        listType = "ul";
+      }
+      const checked = taskMatch[1].toLowerCase() === "x";
+      html.push(`<li class="task-item"><input type="checkbox" disabled${checked ? " checked" : ""}> ${inlineMarkdown(taskMatch[2])}</li>`);
     } else if (/^[-*]\s+/.test(line)) {
       if (listType !== "ul") {
         closeList();

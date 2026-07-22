@@ -23,10 +23,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    ulimits:
-      nofile:
-        soft: 65536
-        hard: 65536
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/"]
       interval: 30s

@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   }
 
   const res = NextResponse.json({ ok: true });
-  res.cookies.set("monitor_token", Buffer.from(`${MONITOR_USER}:${MONITOR_PASS}`).toString("base64"), {
+  res.cookies.set("monitor_token", Buffer.from(`${MONITOR_USER}:${MONITOR_PASS}`).toString("base64url"), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

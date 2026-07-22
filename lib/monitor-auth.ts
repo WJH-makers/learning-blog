@@ -19,7 +19,7 @@ export async function isMonitorAuthed(): Promise<boolean> {
   const pass = process.env.MONITOR_PASS ?? "";
   if (!user || !pass) return false;
 
-  const expected = Buffer.from(`${user}:${pass}`).toString("base64");
+  const expected = Buffer.from(`${user}:${pass}`).toString("base64url");
   const cookieStore = await cookies();
   const token = cookieStore.get("monitor_token")?.value ?? "";
   return safeEqual(token, expected);

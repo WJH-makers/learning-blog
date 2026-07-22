@@ -1,5 +1,8 @@
+import { cookies } from "next/headers";
 import ServerCards from "./ServerCards";
 import TraficCharts from "./TraficCharts";
+import MonitorLogin from "./MonitorLogin";
+import { isMonitorAuthed } from "@/lib/monitor-auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -17,12 +20,21 @@ interface CfStats {
 async function get<T>(path: string): Promise<T | null> {
   try {
     const base = process.env.NODE_ENV === "production" ? "http://127.0.0.1:3001" : "http://localhost:3000";
-    const r = await fetch(`${base}${path}`, { cache: "no-store" });
+    // SSR loopback 自调:手动透传 monitor_token,过 API 的鉴权 gate。
+    const token = (await cookies()).get("monitor_token")?.value;
+    const r = await fetch(`${base}${path}`, {
+      cache: "no-store",
+      headers: token ? { cookie: `monitor_token=${token}` } : undefined,
+    });
     return r.ok ? await r.json() : null;
   } catch { return null; }
 }
 
 export default async function MonitorPage() {
+  if (!(await isMonitorAuthed())) {
+    return <MonitorLogin />;
+  }
+
   const [srv, cf] = await Promise.all([get<Srv>("/api/server-stats"), get<CfStats>("/api/cf-stats")]);
 
   return (

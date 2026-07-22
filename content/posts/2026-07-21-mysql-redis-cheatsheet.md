@@ -110,7 +110,7 @@ SELECT * FROM (
 
 ---
 
-# 七、Redis 命令（难度 × 频次）
+# Redis 命令（难度 × 频次）
 
 ## Redis · S 极高频
 

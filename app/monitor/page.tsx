@@ -58,7 +58,7 @@ export default async function MonitorPage() {
       <div className="page-shell" style={{ maxWidth: 1080, margin: "0 auto", padding: "0 16px 40px" }}>
         <div className="dash-section" style={{ marginTop: 0 }}>
           <div>
-            <h2>监控室</h2>
+            <h2>瞭望台</h2>
             {srv && <span className="muted">运行 {srv.uptime} · CPU {srv.cpu}% · MEM {srv.mem}% · Load {srv.load.toFixed(1)}</span>}
           </div>
           <div style={{ display: "flex", gap: 8 }}>

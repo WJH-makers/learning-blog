@@ -84,8 +84,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <a href="https://github.com/WJH-makers" target="_blank" rel="noreferrer">GitHub</a>
               <Link href="/posts">博客</Link>
               <Link href="/tags">标签</Link>
-              <Link href="/monitor">监控</Link>              <a href="https://dash.cloudflare.com" target="_blank" rel="noreferrer">流量</a>
-              <Link href={writeRoute}>写心得</Link>
+              <Link href="/monitor">瞭望台</Link>              <Link href={writeRoute}>写心得</Link>
             </div>
           </nav>
         </header>

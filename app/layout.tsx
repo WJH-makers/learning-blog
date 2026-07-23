@@ -76,9 +76,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
         <header className="site-header">
           <div className="edition-bar">
-            <span>Vol. 1</span>
+            <span>Core Hub</span>
             <span>{date}</span>
-            <span>UTC+8 Edition</span>
+            <span>SYSTEM ONLINE</span>
           </div>
           <nav className="nav">
             <Link className="brand" href="/">WJH-makers</Link>
@@ -92,8 +92,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </header>
         <main>{children}</main>
         <footer className="footer">
-          <span>Edition: Vol 1.0 · Printed in UTC+8</span>
-          <span>&copy; {new Date().getFullYear()} WJH-makers</span>
+          <span>Crafted with ♥ by WJH-makers</span>
+          <span>&copy; {new Date().getFullYear()} All Rights Reserved</span>
           <span>
             <a className="beian" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">鄂ICP备2026036494号-1</a>
           </span>
